@@ -3,25 +3,23 @@ package SG;
 import java.util.Arrays;
 
 /**
- * Sample agent that always attacks the highest valued target, and
- * fully covers the highest valued covered targets.
+ * @author Erick Garcia <egarcia87@miners.utep.edu>
+ * @author Kimberly kato
+ * @author Luis Casillas
  *
- * @author Jesus Molina
+ * Defender: Minimize Regret
+ * Attacker: Maximize Payoff
  */
 public class MyPlayer extends Player {
 	protected final String newName = "MyPlayer";
 
-	/**
-	 * Your constructor should look just like this
-	 */
 	public MyPlayer() {
 		super();
 		playerName = newName;
 	}
 
-
 	/**
-	 * Minmax
+	 * Minmax - Minimize regret
 	 * 1) Get Number of Resources
 	 * 2) Find out largest values of the Attacker
 	 * 3) Find out in which of these values he gets a higher payoff
@@ -32,18 +30,19 @@ public class MyPlayer extends Player {
 	 * B) Minimize our regret
 	 **/
 	protected double[] solveGame(GameModel g) {
-		int resources = g.getM(); // To know how many targets to protect
+		int resources = g.getM();
 		double[] coverage = new double[g.getT()];
-		int[][] payoffs = g.getPayoffs();
 		int[] coveredTargetValues = g.getPayoffs()[0];
 		int[] uncoveredTargetValues = g.getPayoffs()[1];
 		int[] coveredDefenderValues = g.getPayoffs()[2];
 		int[] uncoveredDefenderValues = g.getPayoffs()[3];
 
-		int[] maxTargetValuesIndexes = new int[coveredTargetValues.length]; //Choose the maximum between covered or uncovered
-		Pair[] targetMaxPayoffsSorted = new Pair[payoffs[0].length]; //Pair of index values
+		int payoffTableSize = coveredTargetValues.length;
 
-		for (int i = 0; i < payoffs[0].length; i++) {
+		int[] maxTargetValuesIndexes = new int[payoffTableSize]; //Choose the maximum between covered or uncovered
+		Pair[] targetMaxPayoffsSorted = new Pair[payoffTableSize]; //Pair of index values
+
+		for (int i = 0; i < payoffTableSize; i++) {
 			maxTargetValuesIndexes[i] = coveredTargetValues[i] >= uncoveredTargetValues[i] ? 0 : 1; //UAC or UAU
 			targetMaxPayoffsSorted[i] = maxTargetValuesIndexes[i] == 0 ? new Pair(i, coveredTargetValues[i]) : new Pair(i, uncoveredTargetValues[i]);
 		}
@@ -51,7 +50,7 @@ public class MyPlayer extends Player {
 
 		int spotsCovered = 0;
 		for (Pair p : targetMaxPayoffsSorted) {
-			if (maxTargetValuesIndexes[p.index] == 0) {
+			if (maxTargetValuesIndexes[p.index] == 0) { //Uncovered value is greater than covered
 				coverage[p.index] = 1;
 				spotsCovered++;
 			}
@@ -59,10 +58,10 @@ public class MyPlayer extends Player {
 				break;
 		}
 		return coverage;
-
 	}
 
 	/**
+	 * Maximize our payoff
 	 * Check the defenders coverage and see if he has a higher payoff
 	 * If it has a higher payoff ignore those indexes in the next step, else include them
 	 * Check our highest value
@@ -83,22 +82,14 @@ public class MyPlayer extends Player {
 		int[] coveredDefenderValues = g.getPayoffs()[2];
 		int[] uncoveredDefenderValues = g.getPayoffs()[3];
 
-		Pair[] uncoveredTargetValuesSorted = new Pair[uncoveredTargetValues.length];
-		Pair[] coveredTargetValuesSorted = new Pair[coveredTargetValues.length];
-
-		for (int i = 0; i < uncoveredTargetValues.length; i++) {
-			uncoveredTargetValuesSorted[i] = new Pair(i, uncoveredTargetValues[i]);
-		}
+		Pair[] uncoveredTargetValuesSorted = fillPair(uncoveredTargetValues);
+		Pair[] coveredTargetValuesSorted = fillPair(coveredTargetValues);
 		Arrays.sort(uncoveredTargetValuesSorted);
-
-		for (int i = 0; i < coveredTargetValues.length; i++) {
-			coveredTargetValuesSorted[i] = new Pair(i, coveredTargetValues[i]);
-		}
 		Arrays.sort(coveredTargetValuesSorted);
 
 		int indexOfMaxUncovered = 0, indexOfMaxCovered = 0;
 		for (Pair p : uncoveredTargetValuesSorted) {
-			if (coverage[p.index] == 0 && p.value >= uncoveredDefenderValues[p.index]){
+			if (coverage[p.index] == 0 && p.value >= uncoveredDefenderValues[p.index]) {
 				indexOfMaxUncovered = p.index;
 				break;
 			}
@@ -115,7 +106,7 @@ public class MyPlayer extends Player {
 	/**
 	 * Class used to sort values and remember their index
 	 */
-	class Pair implements Comparable<Pair> {
+	private class Pair implements Comparable<Pair> {
 		final int index;
 		final int value;
 
@@ -129,5 +120,11 @@ public class MyPlayer extends Player {
 			//multiplied to -1 to sort in descending order
 			return -1 * Integer.valueOf(this.value).compareTo(other.value);
 		}
+	}
+
+	private Pair[] fillPair(int[] array) {
+		Pair[] pair = new Pair[array.length];
+		for (int i = 0; i < array.length; i++) pair[i] = new Pair(i, array[i]);
+		return pair;
 	}
 }
