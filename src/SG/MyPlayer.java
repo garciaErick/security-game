@@ -39,11 +39,12 @@ public class MyPlayer extends Player {
 		int resources = g.getM(); // To know how many targets to protect
 		double[] coverage = new double[g.getT()];
 		int[][] payoffs = g.getPayoffs();
-		int[] attMaxPayoffIndexes = new int[payoffs[0].length];
+		int[] attMaxPayoffIndexes = new int[payoffs[0].length]; //Choose the maximum between UAU and UAC
 		Pair[] attMaxPayoffs = new Pair[payoffs[0].length]; //Pair of index values
 
 		for (int i = 0; i < payoffs[0].length; i++) {
-			attMaxPayoffIndexes[i] = payoffs[0][i] >= payoffs[1][i] ? 0 : 1; //UAU or UAC
+			//TODO: Revise this
+			attMaxPayoffIndexes[i] = payoffs[0][i] >= payoffs[1][i] ? 1 : 0; //UAU or UAC
 			attMaxPayoffs[i] = new Pair(i, payoffs[attMaxPayoffIndexes[i]][i]);
 		}
 		Arrays.sort(attMaxPayoffs); //Sorted MaxPayoffs by their value remembering their indexes
@@ -69,9 +70,10 @@ public class MyPlayer extends Player {
 		 */
 	}
 
-	protected double[] attackTarget(GameModel g) {
+	protected double[] attackTarget(GameModel g, double[] coverage) {
 		/*
 		 * TODO:
+		 * Original
 		 * Check the defensors coverage and see if he has a higher payoff
 		 * If it has a higher payoff ignore those indexes in the next step, else include them
 		 * Check our highest value
@@ -79,39 +81,25 @@ public class MyPlayer extends Player {
 		 * check if there are duplicates which minimize the defenders payoff
 		 * B) check if we win and store the defender's regret
 		 * choose maximum defender's regret
+		 *
+		 * 2nd
+		 * Check our highest value between UAU and UAC 
+		 * sort from highest to lowest
+		 * compare utilities of UAU and UAC
+		 * choose highest value with lowest regret
 		 */
-	}
-
-	/**
-	 * returns true if val is in arr.
-	 *
-	 * @param arr the array.
-	 * @param val the value.
-	 * @return true if val is in arr.
-	 */
-	public boolean contains(int[] arr, int val) {
-		for (int v : arr)
-			if (v == val)
-				return true;
-		return false;
-	}
-
-	/**
-	 * Attack the highest target either covered or not.
-	 *
-	 * @param g        the game
-	 * @param coverage defender's coverage
-	 * @return the target to attack
-	 */
-	protected int attackTarget(GameModel g, double[] coverage) {
-		int[] uncoveredTargetValues = g.getPayoffs()[1]; // 1 is for attacker uncovered utilities
 
 		int[] coveredTargetValues = g.getPayoffs()[0]; // 0 is for attacker covered utilities
+		int[] uncoveredTargetValues = g.getPayoffs()[1]; // 1 is for attacker uncovered utilities
+
 		/** Obtain the index of the highest value target. */
 		int maxIndex = 0;
 		double maxValue = Double.MIN_VALUE;
 		for (int i = 0; i < coverage.length; i++) {
 			// Check uncovered values if uncovered.
+			if (coverage[i] == 1) {
+				
+			}
 			if (coverage[i] == 0) {
 				if (uncoveredTargetValues[i] > maxValue) {
 					maxValue = uncoveredTargetValues[i];
@@ -128,5 +116,43 @@ public class MyPlayer extends Player {
 			}
 		}
 		return maxIndex;
+		//old
+		double[] attack = g.getT();
+		int[][] payoffs = g.getPayoffs();
+		int[] attMaxPayoffIndexes = new int[payoffs[0].length]; //Choose the maximum between UAU and UAC
+		Pair[] attMaxPayoffs = new Pair[payoffs[0].length]; //Pair of index values
+
+		for (int i = 0; i < payoffs[0].length; i++) {
+			attMaxPayoffIndexes[i] = payoffs[0][i] >= payoffs[1][i] ? 0 : 1; //UAU or UAC
+			attMaxPayoffs[i] = new Pair(i, payoffs[attMaxPayoffIndexes[i]][i]);
+		}
+		Arrays.sort(attMaxPayoffs); //Sorted MaxPayoffs by their value remembering their indexes
+
+			//int spotsCovered = 0;
+		for (Pair p : attMaxPayoffs) {
+			if (attMaxPayoffIndexes[p.index] == 0) {
+				coverage[p.index] = 1;
+				spotsCovered++;
+			}
+				//if (spotsCovered <= resources)
+					//break;
+		}
+		return ; 
 	}
+
+	/**
+	 * returns true if val is in arr.
+	 *
+	 * @param arr the array.
+	 * @param val the value.
+	 * @return true if val is in arr.
+	 */
+	public boolean contains(int[] arr, int val) {
+		for (int v : arr)
+			if (v == val)
+				return true;
+		return false;
+	}
+
+	
 }
